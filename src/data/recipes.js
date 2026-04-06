@@ -1,5 +1,5 @@
-// Static fallback data — used when Supabase is unavailable or during initial load.
-// Once DB is live, recipes are fetched from the `recipes` table and override this.
+// Static recipe data — the source of truth for all cooking recipes.
+// User progress (checked/unchecked) is synced to Supabase separately.
 
 // Each recipe: [name, [ingredients], harvestSeason, itemType, recipeSource, objectId, energy, health, buffs, buffDuration, sellPrice, sourceDetail]
 // Index:        0     1              2              3         4             5         6       7       8      9             10         11

@@ -17,7 +17,9 @@
       "Bash(git add:*)",
       "Bash(git commit -m ':*)",
       "Bash(git merge:*)",
-      "Bash(git stash:*)"
+      "Bash(git stash:*)",
+      "Bash(wc -l *.js)",
+      "Bash(grep -n \"grouped.length === 0\" /c/dev/stardewcooking/src/pages/*.jsx)"
     ]
   }
 }

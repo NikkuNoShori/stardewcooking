@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useCollectionStore } from '../hooks/useCollectionStore';
 import { useCollectionSync } from '../hooks/useCollectionSync';
-import { ARTIFACTS, MINERALS, MUSEUM_ITEMS, MUSEUM_REWARDS } from '../data/museum';
+import { MUSEUM_ITEMS, MUSEUM_REWARDS } from '../data/museum';
 import {
   CollectionHeader, CollectionControls, SectionHeader,
   CollectionItem, useFilteredItems,

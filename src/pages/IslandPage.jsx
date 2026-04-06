@@ -5,7 +5,7 @@ import { WALNUTS, WALNUT_AREAS } from '../data/walnuts';
 import { FIELD_OFFICE_ITEMS, FIELD_OFFICE_SURVEYS } from '../data/fieldOffice';
 import {
   CollectionHeader, CollectionControls, SectionHeader,
-  CollectionItem, Checkmark,
+  CollectionItem,
 } from '../components/CollectionPage';
 
 const SORT_OPTIONS = [

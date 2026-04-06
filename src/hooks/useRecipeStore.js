@@ -77,7 +77,6 @@ export const useRecipeStore = create(
       },
 
       // DB data loading
-      setRecipes: (recipes) => set({ recipes }),
       loadFromSupabase: (data) => {
         const update = {};
         if (data.checked) update.checked = data.checked;

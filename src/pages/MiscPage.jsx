@@ -3,7 +3,7 @@ import { useCollectionSync } from '../hooks/useCollectionSync';
 import { STARDROPS } from '../data/stardrops';
 import { SECRET_NOTES, JOURNAL_SCRAPS } from '../data/secretNotes';
 import { MONSTER_GOALS } from '../data/monsters';
-import { CollectionHeader, SectionHeader, CollectionItem, Checkmark } from '../components/CollectionPage';
+import { CollectionHeader, SectionHeader, CollectionItem } from '../components/CollectionPage';
 
 function StardropSection() {
   const stardropChecked = useCollectionStore((s) => s.stardropChecked);

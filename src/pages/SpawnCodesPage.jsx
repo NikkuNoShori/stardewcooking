@@ -1,5 +1,6 @@
 import { useState, useMemo, useCallback } from 'react';
 import { SPAWN_CODES, SPAWN_CATEGORIES } from '../data/spawnCodes';
+import { ICONS } from '../data/icons';
 
 const RARITY_ORDER = ['Legendary', 'Epic', 'Rare', 'Uncommon', 'Common'];
 const RARITY_COLORS = {
@@ -8,6 +9,15 @@ const RARITY_COLORS = {
   Rare: '#2196f3',
   Epic: '#9c27b0',
   Legendary: '#ff9800',
+};
+
+const CATEGORY_ICONS = {
+  'Crop': '🌾', 'Seed': '🌱', 'Forage': '🍄', 'Fish': '🐟',
+  'Mineral': '💎', 'Artifact': '🏺', 'Animal Product': '🥚',
+  'Artisan Good': '🧀', 'Cooking': '🍳', 'Resource': '🪨',
+  'Bait & Tackle': '🎣', 'Bomb': '💣', 'Furniture': '🪑',
+  'Tool': '🧭', 'Ring': '💍', 'Monster Loot': '👹',
+  'Special': '✨', 'Misc': '📦', 'Tree Fruit': '🍎', 'Sapling': '🌳',
 };
 
 const SORT_OPTIONS = [
@@ -19,6 +29,7 @@ const SORT_OPTIONS = [
 ];
 
 const DISCLAIMER_KEY = 'sdv-spawn-codes-acknowledged';
+const FAVORITES_KEY = 'sdv-spawn-favorites';
 
 // ─── Disclaimer Modal ───
 function DisclaimerModal({ onAccept, onBack }) {
@@ -109,6 +120,30 @@ function CopyButton({ id }) {
   );
 }
 
+// ─── Favorite Star Button ───
+function FavButton({ id, favorites, toggleFavorite }) {
+  const isFav = favorites.has(id);
+  return (
+    <button
+      className={`spawn-fav-btn${isFav ? ' spawn-fav-active' : ''}`}
+      onClick={(e) => { e.stopPropagation(); toggleFavorite(id); }}
+      title={isFav ? 'Remove from favorites' : 'Add to favorites'}
+    >
+      {isFav ? '\u2605' : '\u2606'}
+    </button>
+  );
+}
+
+// ─── Item Icon ───
+function ItemIcon({ item }) {
+  const iconData = ICONS[String(item.id)];
+  if (iconData) {
+    return <img className="spawn-item-icon" src={iconData} alt={item.name} />;
+  }
+  const emoji = CATEGORY_ICONS[item.category] || '?';
+  return <span className="spawn-cat-icon">{emoji}</span>;
+}
+
 // ─── Main Page ───
 export default function SpawnCodesPage() {
   const [acknowledged, setAcknowledged] = useState(
@@ -117,6 +152,23 @@ export default function SpawnCodesPage() {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('id');
   const [activeCategories, setActiveCategories] = useState(new Set());
+  const [filter, setFilter] = useState('all'); // 'all' | 'favorites'
+  const [favorites, setFavorites] = useState(() => {
+    try {
+      const stored = localStorage.getItem(FAVORITES_KEY);
+      return stored ? new Set(JSON.parse(stored)) : new Set();
+    } catch { return new Set(); }
+  });
+
+  const toggleFavorite = useCallback((id) => {
+    setFavorites((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      localStorage.setItem(FAVORITES_KEY, JSON.stringify([...next]));
+      return next;
+    });
+  }, []);
 
   if (!acknowledged) {
     return (
@@ -142,6 +194,7 @@ export default function SpawnCodesPage() {
   const filtered = useMemo(() => {
     const q = search.toLowerCase().trim();
     let items = SPAWN_CODES.filter((item) => {
+      if (filter === 'favorites' && !favorites.has(item.id)) return false;
       if (activeCategories.size > 0 && !activeCategories.has(item.category)) return false;
       if (q) {
         const idMatch = String(item.id).includes(q);
@@ -168,16 +221,32 @@ export default function SpawnCodesPage() {
         items.sort((a, b) => a.id - b.id);
     }
     return items;
-  }, [search, sort, activeCategories]);
+  }, [search, sort, activeCategories, filter, favorites]);
 
   return (
     <div className="container">
       <header className="header">
-        <h1>Spawn Codes</h1>
+        <h1><span className="header-icon">{'</>'}</span>Spawn Codes</h1>
         <p className="subtitle">{SPAWN_CODES.length} items — searchable reference</p>
       </header>
 
       <HowToUse />
+
+      {/* All / Favorites filter bar */}
+      <div className="filter-bar collection-controls-top">
+        <button
+          className={`filter-btn${filter === 'all' ? ' active' : ''}`}
+          onClick={() => setFilter('all')}
+        >
+          All ({SPAWN_CODES.length})
+        </button>
+        <button
+          className={`filter-btn${filter === 'favorites' ? ' active' : ''}`}
+          onClick={() => setFilter('favorites')}
+        >
+          Favorites ({favorites.size})
+        </button>
+      </div>
 
       {/* Category filter pills */}
       <div className="spawn-cat-filters">
@@ -187,6 +256,7 @@ export default function SpawnCodesPage() {
             className={`spawn-cat-pill${activeCategories.has(cat) ? ' active' : ''}`}
             onClick={() => toggleCategory(cat)}
           >
+            <span className="spawn-pill-icon">{CATEGORY_ICONS[cat] || ''}</span>
             {cat}
           </button>
         ))}
@@ -224,6 +294,8 @@ export default function SpawnCodesPage() {
         <table className="spawn-table">
           <thead>
             <tr>
+              <th className="spawn-th-fav"></th>
+              <th className="spawn-th-icon"></th>
               <th className="spawn-th-id">ID</th>
               <th className="spawn-th-name">Item</th>
               <th className="spawn-th-cat">Category</th>
@@ -234,7 +306,9 @@ export default function SpawnCodesPage() {
           </thead>
           <tbody>
             {filtered.map((item) => (
-              <tr key={item.id} className="spawn-row">
+              <tr key={item.id} className={`spawn-row${favorites.has(item.id) ? ' spawn-row-fav' : ''}`}>
+                <td><FavButton id={item.id} favorites={favorites} toggleFavorite={toggleFavorite} /></td>
+                <td className="spawn-icon-cell"><ItemIcon item={item} /></td>
                 <td className="spawn-id">
                   <code>[{item.id}]</code>
                 </td>
@@ -254,7 +328,7 @@ export default function SpawnCodesPage() {
             ))}
           </tbody>
         </table>
-        {filtered.length === 0 && <div className="empty">No items match your search</div>}
+        {filtered.length === 0 && <div className="empty">{filter === 'favorites' ? 'No favorites yet — star some items!' : 'No items match your search'}</div>}
         <div className="spawn-count">{filtered.length} items shown</div>
       </div>
     </div>

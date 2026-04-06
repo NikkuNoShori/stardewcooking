@@ -53,7 +53,7 @@ export default function CraftingPage() {
 
   return (
     <div className="container">
-      <CollectionHeader title="Crafting Recipes" done={done} total={total} colorClass="crafting-progress" />
+      <CollectionHeader title="Crafting Recipes" done={done} total={total} colorClass="crafting-progress" icon="🔨" />
       <CollectionControls page="crafting" sortOptions={SORT_OPTIONS} done={done} total={total} />
       <div className="panel">
         {grouped.map(([group, items]) => {

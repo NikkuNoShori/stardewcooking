@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useCollectionStore } from '../hooks/useCollectionStore';
 import { useCollectionSync } from '../hooks/useCollectionSync';
-import { MUSEUM_ITEMS, MUSEUM_REWARDS } from '../data/museum';
+import { MUSEUM_ITEMS } from '../data/museum';
 import {
   CollectionHeader, CollectionControls, SectionHeader,
   CollectionItem, useFilteredItems,
@@ -13,15 +13,6 @@ const SORT_OPTIONS = [
   { value: 'source', label: 'By Source' },
 ];
 
-function NextReward({ count }) {
-  const next = MUSEUM_REWARDS.find((r) => r.count > count);
-  if (!next) return <span className="museum-reward-text">All rewards claimed!</span>;
-  return (
-    <span className="museum-reward-text">
-      Next reward at {next.count}: {next.reward}
-    </span>
-  );
-}
 
 export default function MuseumPage() {
   useCollectionSync();
@@ -60,10 +51,7 @@ export default function MuseumPage() {
 
   return (
     <div className="container">
-      <CollectionHeader title="Museum Collection" done={done} total={total} colorClass="museum-progress" />
-      <div className="note">
-        <b>{done}/95</b> donated — <NextReward count={done} />
-      </div>
+      <CollectionHeader title="Museum Collection" done={done} total={total} colorClass="museum-progress" icon="🏛️" />
       <CollectionControls page="museum" sortOptions={SORT_OPTIONS} done={done} total={total} />
       <div className="panel">
         {grouped.map(([group, items]) => {

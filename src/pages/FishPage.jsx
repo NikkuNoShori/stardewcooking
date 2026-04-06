@@ -83,7 +83,7 @@ export default function FishPage() {
 
   return (
     <div className="container">
-      <CollectionHeader title="Fish Collection" done={done} total={total} colorClass="fish-progress" />
+      <CollectionHeader title="Fish Collection" done={done} total={total} colorClass="fish-progress" icon="🐟" />
       <CollectionControls page="fish" sortOptions={SORT_OPTIONS} done={done} total={total} />
       <div className="panel">
         {grouped.map(([group, items]) => {

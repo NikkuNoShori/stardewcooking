@@ -198,3 +198,4 @@ Append to the update log at the bottom of this document:
 | Date | Requester | Branches covered | Docs modified |
 |------|-----------|------------------|---------------|
 | 2026-04-06 | (initial creation) | — | DOC_UPDATE_PROCEDURE |
+| 2026-04-06 | Nick Neal | enhancements/additional-lists | ARCHITECTURE, DATA_MODEL (new), CHANGELOG (new), README |

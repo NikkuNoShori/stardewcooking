@@ -62,7 +62,7 @@ export default function ShippingPage() {
 
   return (
     <div className="container">
-      <CollectionHeader title="Shipping Collection" done={done} total={total} colorClass="shipping-progress" />
+      <CollectionHeader title="Shipping Collection" done={done} total={total} colorClass="shipping-progress" icon="📦" />
       <CollectionControls page="shipping" sortOptions={SORT_OPTIONS} done={done} total={total} />
       <div className="panel">
         {grouped.map(([group, items]) => {

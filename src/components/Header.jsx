@@ -10,7 +10,7 @@ export default function Header() {
 
   return (
     <header className="header">
-      <h1>Stardew Completionist</h1>
+      <h1><span className="header-icon">🍳</span>Cooking</h1>
       <p className="subtitle">{done} of {total} recipes cooked</p>
       <div className="progress-wrap">
         <div className="progress-bar" style={{ width: `${pct}%` }} />

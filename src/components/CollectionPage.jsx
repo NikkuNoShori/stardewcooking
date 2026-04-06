@@ -60,7 +60,7 @@ export function CollectionControls({ page, sortOptions, done = null, total = nul
   };
 
   return (
-    <>
+    <div className="collection-controls">
       <div className="filter-bar">
         {['all', 'remaining', 'completed'].map((f) => (
           <button
@@ -96,16 +96,16 @@ export function CollectionControls({ page, sortOptions, done = null, total = nul
           </div>
         )}
       </div>
-    </>
+    </div>
   );
 }
 
 // Progress header
-export function CollectionHeader({ title, done, total, colorClass }) {
+export function CollectionHeader({ title, done, total, colorClass, icon }) {
   const pct = total > 0 ? Math.round((done / total) * 100) : 0;
   return (
     <header className="header">
-      <h1>{title}</h1>
+      <h1>{icon && <span className="header-icon">{icon}</span>}{title}</h1>
       <p className="subtitle">{done} of {total} collected</p>
       <div className="progress-wrap">
         <div className={`progress-bar ${colorClass || ''}`} style={{ width: `${pct}%` }} />

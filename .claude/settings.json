@@ -11,7 +11,8 @@
       "Bash(mv 20260405000001_schema.sql 20260405180001_create_recipe_progress_table.sql)",
       "Bash(mv 20260405000002_rpc.sql 20260405180002_add_progress_rpc_functions.sql)",
       "Bash(mv 20260405000003_recipes_and_ingredients.sql 20260405180003_create_recipes_table_and_seed_data.sql)",
-      "Bash(mv 20260405000004_source_details.sql 20260405180004_add_source_detail_column.sql)"
+      "Bash(mv 20260405000004_source_details.sql 20260405180004_add_source_detail_column.sql)",
+      "Bash(npx vite:*)"
     ]
   }
 }

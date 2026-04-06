@@ -1,7 +1,6 @@
 import { useRecipeStore } from '../hooks/useRecipeStore';
 import { useSupabaseSync } from '../hooks/useSupabaseSync';
 import Header from '../components/Header';
-import UserMenu from '../components/UserMenu';
 import TabBar from '../components/TabBar';
 import FilterBar from '../components/FilterBar';
 import ControlsBar from '../components/ControlsBar';
@@ -17,7 +16,6 @@ export default function Home() {
   return (
     <>
       <div className="container">
-        <UserMenu />
         <Header />
         <div className="tab-bar-top">
           <TabBar />

@@ -1,9 +1,10 @@
 import { useRecipeStore } from '../hooks/useRecipeStore';
+import { useCollectionStore } from '../hooks/useCollectionStore';
 
 export default function FilterBar() {
   const currentFilter = useRecipeStore((s) => s.currentFilter);
   const setFilter = useRecipeStore((s) => s.setFilter);
-  const checked = useRecipeStore((s) => s.checked);
+  const checked = useCollectionStore((s) => s.recipeChecked);
   const recipes = useRecipeStore((s) => s.recipes);
 
   const done = Object.values(checked).filter(Boolean).length;

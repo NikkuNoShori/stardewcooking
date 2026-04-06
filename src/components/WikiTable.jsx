@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useRecipeStore } from '../hooks/useRecipeStore';
+import { useCollectionStore } from '../hooks/useCollectionStore';
 import { SEASON_ORDER, TYPE_ORDER, SOURCE_ORDER, SOURCE_LABELS } from '../data/recipes';
 import { ICONS } from '../data/icons';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -13,7 +14,7 @@ function parseSellPrice(s) {
 
 export default function WikiTable() {
   const recipes = useRecipeStore((s) => s.recipes);
-  const checked = useRecipeStore((s) => s.checked);
+  const checked = useCollectionStore((s) => s.recipeChecked);
   const currentFilter = useRecipeStore((s) => s.currentFilter);
   const searchQuery = useRecipeStore((s) => s.searchQuery);
   const toggle = useRecipeStore((s) => s.toggle);

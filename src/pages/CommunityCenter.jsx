@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useBundleStore } from '../hooks/useBundleStore';
+import { useCollectionStore } from '../hooks/useCollectionStore';
 import { useBundleSync } from '../hooks/useBundleSync';
 import { ROOMS, SEASONS, CATEGORIES, QUALITY_LABELS, QUALITY_COLORS } from '../data/bundles';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -85,7 +86,7 @@ function Filters() {
 }
 
 function BundleCard({ room, bundle }) {
-  const bundleChecked = useBundleStore((s) => s.bundleChecked);
+  const bundleChecked = useCollectionStore((s) => s.bundleChecked);
   const toggleBundleItem = useBundleStore((s) => s.toggleBundleItem);
   const collapsedBundles = useBundleStore((s) => s.collapsedBundles);
   const toggleBundleCollapse = useBundleStore((s) => s.toggleBundleCollapse);

@@ -38,13 +38,84 @@ const NAV_ITEMS = [
   },
   {
     key: '/community-center',
-    label: 'Community Center',
+    label: 'Bundles',
     icon: (
       <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
         <path d="M3 21V9l9-7 9 7v12" />
         <path d="M9 21V13h6v8" />
         <path d="M1 10l11-8 11 8" />
         <circle cx="12" cy="9" r="1.5" fill="currentColor" />
+      </svg>
+    ),
+  },
+  {
+    key: '/fish',
+    label: 'Fish',
+    icon: (
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M6.5 12c3-6 11-6 14 0-3 6-11 6-14 0z" />
+        <circle cx="16" cy="12" r="1" fill="currentColor" />
+        <path d="M2 10l4.5 2L2 14" />
+      </svg>
+    ),
+  },
+  {
+    key: '/museum',
+    label: 'Museum',
+    icon: (
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M3 21h18" /><path d="M5 21V7l7-4 7 4v14" />
+        <path d="M9 21v-6h6v6" /><path d="M9 10h1" /><path d="M14 10h1" />
+      </svg>
+    ),
+  },
+  {
+    key: '/shipping',
+    label: 'Shipping',
+    icon: (
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M21 16V8a2 2 0 00-1-1.73L13 2.27a2 2 0 00-2 0L4 6.27A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z" />
+        <polyline points="3.27 6.96 12 12.01 20.73 6.96" />
+        <line x1="12" y1="22.08" x2="12" y2="12" />
+      </svg>
+    ),
+  },
+  {
+    key: '/crafting',
+    label: 'Crafting',
+    icon: (
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M14.7 6.3a1 1 0 000 1.4l1.6 1.6a1 1 0 001.4 0l3.77-3.77a6 6 0 01-7.94 7.94l-6.91 6.91a2.12 2.12 0 01-3-3l6.91-6.91a6 6 0 017.94-7.94l-3.76 3.76z" />
+      </svg>
+    ),
+  },
+  {
+    key: '/island',
+    label: 'Ginger Island',
+    icon: (
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d="M17 20H7c-3 0-5-2-5-5 0-2.5 2-5 5.5-5C8 7 10 4 14 4c3.5 0 6 2.5 6 6 0 .5 0 1-.1 1.5" />
+        <path d="M12 10v6" /><path d="M9 13l3-3 3 3" />
+      </svg>
+    ),
+  },
+  {
+    key: '/misc',
+    label: 'Misc',
+    icon: (
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
+      </svg>
+    ),
+  },
+  {
+    key: '/spawn-codes',
+    label: 'Spawn Codes',
+    cheat: true,
+    icon: (
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <polyline points="16 18 22 12 16 6" /><polyline points="8 6 2 12 8 18" />
+        <line x1="14" y1="4" x2="10" y2="20" />
       </svg>
     ),
   },
@@ -84,7 +155,7 @@ export default function Sidebar({ isOpen, onClose }) {
           {NAV_ITEMS.map((item) => (
             <button
               key={item.key}
-              className={`sidebar-item${location.pathname === item.key ? ' active' : ''}`}
+              className={`sidebar-item${location.pathname === item.key ? ' active' : ''}${item.cheat ? ' sidebar-cheat' : ''}`}
               onClick={() => handleNav(item.key)}
             >
               <span className="sidebar-item-icon">{item.icon}</span>

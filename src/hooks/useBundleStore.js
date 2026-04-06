@@ -1,30 +1,27 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
+import { useCollectionStore } from './useCollectionStore';
 
 export const useBundleStore = create(
   persist(
     (set, get) => ({
-      // Bundle item completion: keyed by "roomKey:bundleName:itemName" -> boolean
-      bundleChecked: {},
-
       // UI state
       activeRoom: 'crafts',
-      seasonFilter: 'all',       // 'all' | 'Spring' | 'Summer' | 'Fall' | 'Winter'
-      categoryFilter: 'all',     // 'all' | 'Farming' | 'Foraging' | etc.
+      seasonFilter: 'all',
+      categoryFilter: 'all',
       bundleSearch: '',
-      collapsedBundles: {},      // keyed by "roomKey:bundleName" -> boolean
+      collapsedBundles: {},
 
-      // Actions
-      toggleBundleItem: (roomKey, bundleName, itemName) => set((state) => {
+      // Checked state — delegates to collection store
+      get bundleChecked() {
+        return useCollectionStore.getState().bundleChecked;
+      },
+
+      // Actions — delegate toggle to collection store
+      toggleBundleItem: (roomKey, bundleName, itemName) => {
         const key = `${roomKey}:${bundleName}:${itemName}`;
-        const next = { ...state.bundleChecked };
-        if (next[key]) {
-          delete next[key];
-        } else {
-          next[key] = true;
-        }
-        return { bundleChecked: next };
-      }),
+        useCollectionStore.getState().toggleItem('bundleChecked', key);
+      },
 
       setActiveRoom: (room) => set({ activeRoom: room }),
       setSeasonFilter: (season) => set({ seasonFilter: season }),
@@ -37,28 +34,27 @@ export const useBundleStore = create(
         return { collapsedBundles: { ...state.collapsedBundles, [key]: !current } };
       }),
 
-      resetBundles: () => set({ bundleChecked: {} }),
-
-      // Supabase sync
-      loadBundlesFromSupabase: (data) => set({ bundleChecked: data }),
+      resetBundles: () => {
+        useCollectionStore.getState().resetTracker('bundleChecked');
+      },
 
       // Derived helpers
       getBundleProgress: (roomKey, bundleName, items, pick) => {
-        const state = get();
+        const bundleChecked = useCollectionStore.getState().bundleChecked;
         const done = items.filter((item) =>
-          !!state.bundleChecked[`${roomKey}:${bundleName}:${item[0]}`]
+          !!bundleChecked[`${roomKey}:${bundleName}:${item[0]}`]
         ).length;
         const needed = pick || items.length;
         return { done, needed, complete: done >= needed };
       },
 
       getRoomProgress: (room) => {
-        const state = get();
+        const bundleChecked = useCollectionStore.getState().bundleChecked;
         let completed = 0;
         room.bundles.forEach((bundle) => {
           const needed = bundle.pick || bundle.items.length;
           const done = bundle.items.filter((item) =>
-            !!state.bundleChecked[`${room.key}:${bundle.name}:${item[0]}`]
+            !!bundleChecked[`${room.key}:${bundle.name}:${item[0]}`]
           ).length;
           if (done >= needed) completed++;
         });
@@ -67,8 +63,12 @@ export const useBundleStore = create(
     }),
     {
       name: 'sdv-bundles-store',
+      version: 2,
+      migrate: () => ({
+        activeRoom: 'crafts',
+        collapsedBundles: {},
+      }),
       partialize: (state) => ({
-        bundleChecked: state.bundleChecked,
         activeRoom: state.activeRoom,
         collapsedBundles: state.collapsedBundles,
       }),

@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useRecipeStore } from '../hooks/useRecipeStore';
+import { useCollectionStore } from '../hooks/useCollectionStore';
 import { SEASON_ORDER, TYPE_ORDER, SOURCE_ORDER, SOURCE_LABELS, seasonLabel } from '../data/recipes';
 import { ICONS } from '../data/icons';
 import { useIsMobile } from '../hooks/useMediaQuery';
@@ -20,8 +21,8 @@ function dotClass(key, mode) {
 
 export default function RecipeList() {
   const recipes = useRecipeStore((s) => s.recipes);
-  const checked = useRecipeStore((s) => s.checked);
-  const ingredientsChecked = useRecipeStore((s) => s.ingredientsChecked);
+  const checked = useCollectionStore((s) => s.recipeChecked);
+  const ingredientsChecked = useCollectionStore((s) => s.ingredientsChecked);
   const currentFilter = useRecipeStore((s) => s.currentFilter);
   const searchQuery = useRecipeStore((s) => s.searchQuery);
   const sortMode = useRecipeStore((s) => s.sortMode);

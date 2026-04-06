@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
 import { useRecipeStore } from '../hooks/useRecipeStore';
+import { useCollectionStore } from '../hooks/useCollectionStore';
 import { parseIngredient } from '../data/recipes';
 
 export default function IngredientTable() {
   const recipes = useRecipeStore((s) => s.recipes);
-  const checked = useRecipeStore((s) => s.checked);
-  const ingredientsChecked = useRecipeStore((s) => s.ingredientsChecked);
+  const checked = useCollectionStore((s) => s.recipeChecked);
+  const ingredientsChecked = useCollectionStore((s) => s.ingredientsChecked);
   const currentFilter = useRecipeStore((s) => s.currentFilter);
   const searchQuery = useRecipeStore((s) => s.searchQuery);
   const ingredientSort = useRecipeStore((s) => s.ingredientSort);

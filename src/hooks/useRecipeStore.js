@@ -1,18 +1,13 @@
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import { RECIPES_STATIC } from '../data/recipes';
+import { useCollectionStore } from './useCollectionStore';
 
 export const useRecipeStore = create(
   persist(
     (set, get) => ({
-      // Recipe data — starts with static, replaced by DB data on load
+      // Recipe data — static, hardcoded
       recipes: RECIPES_STATIC,
-
-      // Recipe completion state — empty by default, populated from DB
-      checked: {},
-
-      // Ingredient gathering state: keyed by "recipeIndex:ingredientName" -> boolean
-      ingredientsChecked: {},
 
       // UI state
       currentTab: 'recipes',
@@ -23,27 +18,15 @@ export const useRecipeStore = create(
       wikiSort: { column: 'name', direction: 'asc' },
       collapsedGroups: {},
 
-      // Actions
-      toggle: (idx) => set((state) => {
-        const next = { ...state.checked };
-        if (next[idx]) {
-          delete next[idx];
-        } else {
-          next[idx] = true;
-        }
-        return { checked: next };
-      }),
+      // Actions — delegate toggles to collection store
+      toggle: (idx) => {
+        useCollectionStore.getState().toggleItem('recipeChecked', idx);
+      },
 
-      toggleIngredient: (recipeIdx, ingredientName) => set((state) => {
+      toggleIngredient: (recipeIdx, ingredientName) => {
         const key = `${recipeIdx}:${ingredientName}`;
-        const next = { ...state.ingredientsChecked };
-        if (next[key]) {
-          delete next[key];
-        } else {
-          next[key] = true;
-        }
-        return { ingredientsChecked: next };
-      }),
+        useCollectionStore.getState().toggleItem('ingredientsChecked', key);
+      },
 
       setTab: (tab) => set({ currentTab: tab }),
       setFilter: (filter) => set({ currentFilter: filter }),
@@ -69,47 +52,32 @@ export const useRecipeStore = create(
         return { collapsedGroups: { ...state.collapsedGroups, [key]: !current } };
       }),
 
-      resetAll: () => set({ checked: {}, ingredientsChecked: {} }),
+      resetAll: () => {
+        useCollectionStore.getState().resetTracker('recipeChecked');
+        useCollectionStore.getState().resetTracker('ingredientsChecked');
+      },
       checkAll: () => {
         const checked = {};
         get().recipes.forEach((_, i) => { checked[i] = true; });
-        set({ checked });
+        useCollectionStore.setState({ recipeChecked: checked });
       },
 
-      // DB data loading
-      setRecipes: (recipes) => set({ recipes }),
-      loadFromSupabase: (data) => {
-        const update = {};
-        if (data.checked) update.checked = data.checked;
-        if (data.ingredients_checked) update.ingredientsChecked = data.ingredients_checked;
-        if (Object.keys(update).length > 0) set(update);
-      },
-      getCheckedObject: () => get().checked,
-      getIngredientsChecked: () => get().ingredientsChecked,
-
-      // Derived counts
-      doneCount: () => Object.values(get().checked).filter(Boolean).length,
+      // Derived counts — read from collection store
+      doneCount: () => Object.values(useCollectionStore.getState().recipeChecked).filter(Boolean).length,
       totalCount: () => get().recipes.length,
     }),
     {
       name: 'sdv-recipes-store',
-      version: 2, // bump version to clear stale localStorage with hardcoded checks
-      migrate: () => {
-        // Fresh start — discard old hardcoded state
-        return {
-          checked: {},
-          ingredientsChecked: {},
-          currentTab: 'recipes',
-          currentFilter: 'all',
-          sortMode: 'alpha',
-          ingredientSort: { column: 'name', direction: 'asc' },
-          wikiSort: { column: 'name', direction: 'asc' },
-          collapsedGroups: {},
-        };
-      },
+      version: 3,
+      migrate: () => ({
+        currentTab: 'recipes',
+        currentFilter: 'all',
+        sortMode: 'alpha',
+        ingredientSort: { column: 'name', direction: 'asc' },
+        wikiSort: { column: 'name', direction: 'asc' },
+        collapsedGroups: {},
+      }),
       partialize: (state) => ({
-        checked: state.checked,
-        ingredientsChecked: state.ingredientsChecked,
         currentTab: state.currentTab,
         currentFilter: state.currentFilter,
         sortMode: state.sortMode,

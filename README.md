@@ -1,16 +1,76 @@
-# React + Vite
+# Stardew Completionist
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A comprehensive Stardew Valley completionist tracker. Track your progress across cooking recipes, Community Center bundles, fish, museum artifacts, shipping items, crafting recipes, Ginger Island content, and more — with optional cloud sync via Supabase.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+- **Cooking Recipes** — Track 81 recipes with ingredient lists, energy/health stats, buffs, and unlock conditions
+- **Community Center** — Bundle completion tracker organized by room with pick-N-of-M logic
+- **Fish Collection** — 80+ fish with location, season, difficulty, and weather info
+- **Museum** — Artifacts and minerals with sources and tips
+- **Shipping** — Complete shippable items list organized by category
+- **Crafting** — All crafting recipes with ingredients and unlock requirements
+- **Ginger Island** — Golden Walnut tracker (130 total) and Field Office donations
+- **Miscellaneous** — Stardrops, Secret Notes, Journal Scraps, and Monster Eradication goals
+- **Spawn Codes** — Item ID reference with search, filters, and copy-to-clipboard
+- **Cloud Sync** — Optional Supabase auth (email + Google OAuth) with automatic progress sync
+- **Offline-First** — Works fully without an account using localStorage
 
-## React Compiler
+## Tech Stack
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+- [Vite](https://vitejs.dev/) + [React](https://react.dev/) 19
+- [Zustand](https://zustand-demo.pmnd.rs/) for state management (with localStorage persistence)
+- [Supabase](https://supabase.com/) for auth and database (optional)
+- [React Router](https://reactrouter.com/) v7
 
-## Expanding the ESLint configuration
+## Getting Started
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### Prerequisites
+
+- Node.js 18+
+- npm
+
+### Setup
+
+```bash
+git clone <repo-url>
+cd stardewcooking
+npm install
+cp .env.example .env
+```
+
+Edit `.env` with your Supabase credentials (optional — app works without them):
+
+```
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_PUBLISHABLE_DEFAULT_KEY=your-anon-key
+```
+
+### Development
+
+```bash
+npm run dev
+```
+
+### Build
+
+```bash
+npm run build
+npm run preview   # Preview built output
+```
+
+### Supabase Setup (optional)
+
+If you want cloud sync:
+
+1. Create a [Supabase](https://supabase.com/) project
+2. Run the migrations in `supabase/migrations/` in order
+3. Enable Google OAuth in Supabase Auth settings (optional)
+4. Add your project URL and anon key to `.env`
+
+## Documentation
+
+- [Architecture](docs/ARCHITECTURE.md) — System overview, state management, auth flow
+- [Data Model](docs/DATA_MODEL.md) — Supabase schema and static data file formats
+- [Changelog](docs/CHANGELOG.md) — User-visible changes by date
+- [Doc Update Procedure](docs/DOC_UPDATE_PROCEDURE.md) — How to update documentation after code changes

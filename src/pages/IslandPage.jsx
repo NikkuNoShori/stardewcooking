@@ -1,4 +1,4 @@
-import { useMemo, useEffect } from 'react';
+import { useMemo, useEffect, useCallback } from 'react';
 import { useCollectionStore } from '../hooks/useCollectionStore';
 import { useCollectionSync } from '../hooks/useCollectionSync';
 import { WALNUTS, WALNUT_AREAS } from '../data/walnuts';
@@ -48,7 +48,7 @@ function CategoryHeader({ label, done, total, sectionKey }) {
   );
 }
 
-function CollapsibleItems({ items, sectionKey, checkedMap, storeKey, toggleItem, viewMode }) {
+function CollapsibleItems({ items, sectionKey, checkedMap, storeKey, toggleItem, viewMode, onSortClick, sortArrow }) {
   const collapsed = useCollectionStore((s) => s.collapsedSections);
   if (collapsed[sectionKey]) return null;
 
@@ -58,8 +58,8 @@ function CollapsibleItems({ items, sectionKey, checkedMap, storeKey, toggleItem,
         <thead>
           <tr>
             <th></th>
-            <th>Name</th>
-            <th>Source</th>
+            <th className="fish-th-sort" onClick={() => onSortClick('alpha')}>Name{sortArrow('alpha')}</th>
+            <th className="fish-th-sort" onClick={() => onSortClick('area', 'area')}>Source{sortArrow('area', 'area')}</th>
           </tr>
         </thead>
         <tbody>
@@ -107,6 +107,7 @@ export default function IslandPage() {
   const toggleItem = useCollectionStore((s) => s.toggleItem);
   const collapsed = useCollectionStore((s) => s.collapsedSections);
   const sortModes = useCollectionStore((s) => s.sortModes);
+  const setSort = useCollectionStore((s) => s.setSort);
   const searchQueries = useCollectionStore((s) => s.searchQueries);
   const filters = useCollectionStore((s) => s.filters);
   const viewModes = useCollectionStore((s) => s.viewModes);
@@ -169,6 +170,20 @@ export default function IslandPage() {
   const walnutsCategoryCollapsed = collapsed['island:cat:walnuts'] ?? false;
   const foCategoryCollapsed = collapsed['island:cat:fieldoffice'] ?? false;
 
+  const toggleSortMode = useCallback((ascMode, descMode = null) => {
+    const nextDescMode = descMode || `${ascMode}_desc`;
+    if (sort === ascMode) return setSort('island', nextDescMode);
+    if (sort === nextDescMode) return setSort('island', ascMode);
+    return setSort('island', ascMode);
+  }, [setSort, sort]);
+
+  const sortArrow = useCallback((ascMode, descMode = null) => {
+    const activeDescMode = descMode || `${ascMode}_desc`;
+    if (sort === ascMode) return ' \u2191';
+    if (sort === activeDescMode) return ' \u2193';
+    return ' \u21D5';
+  }, [sort]);
+
   return (
     <div className="container">
       <CollectionHeader
@@ -216,6 +231,8 @@ export default function IslandPage() {
                     storeKey="walnutChecked"
                     toggleItem={toggleItem}
                     viewMode={viewMode}
+                    onSortClick={toggleSortMode}
+                    sortArrow={sortArrow}
                   />
                 </div>
               );
@@ -250,6 +267,8 @@ export default function IslandPage() {
                     storeKey="fieldOfficeChecked"
                     toggleItem={toggleItem}
                     viewMode={viewMode}
+                    onSortClick={toggleSortMode}
+                    sortArrow={sortArrow}
                   />
                 </div>
               );

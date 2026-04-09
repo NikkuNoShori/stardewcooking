@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useCollectionStore } from '../hooks/useCollectionStore';
 import { useCollectionSync } from '../hooks/useCollectionSync';
 import { SHIPPING, SHIPPING_CATEGORIES } from '../data/shipping';
@@ -11,6 +11,8 @@ const SORT_OPTIONS = [
   { value: 'category', label: 'By Category' },
   { value: 'alpha', label: 'A-Z' },
   { value: 'alpha_desc', label: 'Z-A' },
+  { value: 'source', label: 'By Source' },
+  { value: 'source_desc', label: 'By Source (Z-A)' },
   { value: 'season', label: 'By Season' },
 ];
 
@@ -20,6 +22,7 @@ export default function ShippingPage() {
   const toggleItem = useCollectionStore((s) => s.toggleItem);
   const sortModes = useCollectionStore((s) => s.sortModes);
   const viewModes = useCollectionStore((s) => s.viewModes);
+  const setSort = useCollectionStore((s) => s.setSort);
   const sort = sortModes['shipping'] || 'category';
   const viewMode = viewModes['shipping'] || 'list';
 
@@ -38,6 +41,12 @@ export default function ShippingPage() {
     if (sort === 'alpha' || sort === 'alpha_desc') {
       sorted.sort((a, b) => a.name.localeCompare(b.name));
       if (sort === 'alpha_desc') sorted.reverse();
+      return [['All Items', sorted]];
+    }
+
+    if (sort === 'source' || sort === 'source_desc') {
+      sorted.sort((a, b) => a.source.localeCompare(b.source));
+      if (sort === 'source_desc') sorted.reverse();
       return [['All Items', sorted]];
     }
 
@@ -63,6 +72,20 @@ export default function ShippingPage() {
     });
     return Object.entries(groups).filter(([, items]) => items.length > 0);
   }, [filtered, sort]);
+
+  const toggleSortMode = useCallback((ascMode, descMode = null) => {
+    const nextDescMode = descMode || `${ascMode}_desc`;
+    if (sort === ascMode) return setSort('shipping', nextDescMode);
+    if (sort === nextDescMode) return setSort('shipping', ascMode);
+    return setSort('shipping', ascMode);
+  }, [setSort, sort]);
+
+  const sortArrow = useCallback((ascMode, descMode = null) => {
+    const activeDescMode = descMode || `${ascMode}_desc`;
+    if (sort === ascMode) return ' \u2191';
+    if (sort === activeDescMode) return ' \u2193';
+    return ' \u21D5';
+  }, [sort]);
 
   return (
     <div className="container">
@@ -95,6 +118,8 @@ export default function ShippingPage() {
                 toggleItem={toggleItem}
                 sectionKey={`shipping:${group}`}
                 viewMode={viewMode}
+                onSortClick={toggleSortMode}
+                sortArrow={sortArrow}
               />
             </div>
           );
@@ -105,7 +130,7 @@ export default function ShippingPage() {
   );
 }
 
-function SectionItems({ items, shippingChecked, toggleItem, sectionKey, viewMode }) {
+function SectionItems({ items, shippingChecked, toggleItem, sectionKey, viewMode, onSortClick, sortArrow }) {
   const collapsed = useCollectionStore((s) => s.collapsedSections);
   if (collapsed[sectionKey]) return null;
 
@@ -115,9 +140,9 @@ function SectionItems({ items, shippingChecked, toggleItem, sectionKey, viewMode
         <thead>
           <tr>
             <th></th>
-            <th>Name</th>
-            <th>Source</th>
-            <th>Season</th>
+            <th className="fish-th-sort" onClick={() => onSortClick('alpha')}>Name{sortArrow('alpha')}</th>
+            <th className="fish-th-sort" onClick={() => onSortClick('source')}>Source{sortArrow('source')}</th>
+            <th className="fish-th-sort" onClick={() => onSortClick('season')}>Season{sortArrow('season')}</th>
           </tr>
         </thead>
         <tbody>

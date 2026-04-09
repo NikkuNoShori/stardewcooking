@@ -12,6 +12,7 @@ export const useBundleStore = create(
       bundleSearch: '',
       collapsedBundles: {},
       viewMode: 'list',
+      contentMode: 'bundles',
 
       // Checked state — delegates to collection store
       get bundleChecked() {
@@ -40,6 +41,7 @@ export const useBundleStore = create(
       setCategoryFilter: (category) => set({ categoryFilter: category }),
       setBundleSearch: (query) => set({ bundleSearch: query }),
       setViewMode: (mode) => set({ viewMode: mode }),
+      setContentMode: (mode) => set({ contentMode: mode }),
 
       toggleBundleCollapse: (roomKey, bundleName, defaultCollapsed) => set((state) => {
         const key = `${roomKey}:${bundleName}`;
@@ -89,11 +91,13 @@ export const useBundleStore = create(
         activeRoom: 'crafts',
         collapsedBundles: {},
         viewMode: 'list',
+        contentMode: 'bundles',
       }),
       partialize: (state) => ({
         activeRoom: state.activeRoom,
         collapsedBundles: state.collapsedBundles,
         viewMode: state.viewMode,
+        contentMode: state.contentMode,
       }),
     }
   )

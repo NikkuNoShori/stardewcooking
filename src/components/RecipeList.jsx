@@ -24,6 +24,7 @@ export default function RecipeList() {
   const currentFilter = useRecipeStore((s) => s.currentFilter);
   const searchQuery = useRecipeStore((s) => s.searchQuery);
   const sortMode = useRecipeStore((s) => s.sortMode);
+  const setSort = useRecipeStore((s) => s.setSort);
   const viewMode = useRecipeStore((s) => s.viewMode);
   const toggle = useRecipeStore((s) => s.toggle);
   const toggleIngredient = useRecipeStore((s) => s.toggleIngredient);
@@ -53,22 +54,33 @@ export default function RecipeList() {
     const cmp = (a, b) => recipes[a][0].localeCompare(recipes[b][0]);
     switch (sortMode) {
       case 'alpha': copy.sort(cmp); break;
+      case 'alpha_desc': copy.sort((a, b) => cmp(b, a)); break;
       case 'harvest': copy.sort((a, b) => (SEASON_ORDER[recipes[a][2]] ?? 5) - (SEASON_ORDER[recipes[b][2]] ?? 5) || cmp(a, b)); break;
+      case 'harvest_desc': copy.sort((a, b) => (SEASON_ORDER[recipes[b][2]] ?? 5) - (SEASON_ORDER[recipes[a][2]] ?? 5) || cmp(a, b)); break;
       case 'type': copy.sort((a, b) => (TYPE_ORDER[recipes[a][3]] ?? 9) - (TYPE_ORDER[recipes[b][3]] ?? 9) || cmp(a, b)); break;
+      case 'type_desc': copy.sort((a, b) => (TYPE_ORDER[recipes[b][3]] ?? 9) - (TYPE_ORDER[recipes[a][3]] ?? 9) || cmp(a, b)); break;
       case 'source': copy.sort((a, b) => (SOURCE_ORDER[recipes[a][4]] ?? 12) - (SOURCE_ORDER[recipes[b][4]] ?? 12) || cmp(a, b)); break;
+      case 'source_desc': copy.sort((a, b) => (SOURCE_ORDER[recipes[b][4]] ?? 12) - (SOURCE_ORDER[recipes[a][4]] ?? 12) || cmp(a, b)); break;
       case 'energy': copy.sort((a, b) => recipes[b][6] - recipes[a][6] || cmp(a, b)); break;
+      case 'energy_asc': copy.sort((a, b) => recipes[a][6] - recipes[b][6] || cmp(a, b)); break;
       case 'health': copy.sort((a, b) => recipes[b][7] - recipes[a][7] || cmp(a, b)); break;
+      case 'health_asc': copy.sort((a, b) => recipes[a][7] - recipes[b][7] || cmp(a, b)); break;
       case 'sell': copy.sort((a, b) => {
         const pa = getPriceDisplay(recipes[a][10], { name: recipes[a][0], category: 'Cooking' }, selection);
         const pb = getPriceDisplay(recipes[b][10], { name: recipes[b][0], category: 'Cooking' }, selection);
         return pb.adjustedPrice - pa.adjustedPrice || cmp(a, b);
+      }); break;
+      case 'sell_asc': copy.sort((a, b) => {
+        const pa = getPriceDisplay(recipes[a][10], { name: recipes[a][0], category: 'Cooking' }, selection);
+        const pb = getPriceDisplay(recipes[b][10], { name: recipes[b][0], category: 'Cooking' }, selection);
+        return pa.adjustedPrice - pb.adjustedPrice || cmp(a, b);
       }); break;
     }
     return copy;
   }, [filtered, sortMode, recipes, selection]);
 
   const groups = useMemo(() => {
-    if (sortMode === 'alpha' || sortMode === 'energy' || sortMode === 'health' || sortMode === 'sell') return null;
+    if (['alpha', 'alpha_desc', 'energy', 'energy_asc', 'health', 'health_asc', 'sell', 'sell_asc'].includes(sortMode)) return null;
 
     const groupMap = new Map();
     sorted.forEach((i) => {
@@ -144,13 +156,13 @@ export default function RecipeList() {
       <thead>
         <tr>
           <th></th>
-          <th>Name</th>
-          <th>Source</th>
+          <th className="wiki-th-sort" onClick={() => toggleSortMode('alpha', 'alpha_desc')}>Name{sortArrow('alpha', 'alpha_desc')}</th>
+          <th className="wiki-th-sort" onClick={() => toggleSortMode('source', 'source_desc')}>Source{sortArrow('source', 'source_desc')}</th>
           <th>Ingredients</th>
-          <th>Energy</th>
-          <th>HP</th>
+          <th className="wiki-th-sort" onClick={() => toggleSortMode('energy_asc', 'energy')}>Energy{sortArrow('energy_asc', 'energy')}</th>
+          <th className="wiki-th-sort" onClick={() => toggleSortMode('health_asc', 'health')}>HP{sortArrow('health_asc', 'health')}</th>
           <th>Buffs</th>
-          <th>Sell</th>
+          <th className="wiki-th-sort" onClick={() => toggleSortMode('sell_asc', 'sell')}>Sell{sortArrow('sell_asc', 'sell')}</th>
         </tr>
       </thead>
       <tbody>
@@ -201,6 +213,18 @@ export default function RecipeList() {
       </div>
     );
   });
+
+  const toggleSortMode = (ascMode, descMode) => {
+    if (sortMode === ascMode) return setSort(descMode);
+    if (sortMode === descMode) return setSort(ascMode);
+    return setSort(ascMode);
+  };
+
+  const sortArrow = (ascMode, descMode) => {
+    if (sortMode === ascMode) return ' \u2191';
+    if (sortMode === descMode) return ' \u2193';
+    return ' \u21D5';
+  };
 
   if (!groups) {
     return viewMode === 'table' ? renderRecipeTable(sorted) : <>{renderRecipeList(sorted)}</>;

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useCollectionStore } from '../hooks/useCollectionStore';
 import { useCollectionSync } from '../hooks/useCollectionSync';
 import { CRAFTING, CRAFTING_CATEGORIES } from '../data/crafting';
@@ -12,6 +12,7 @@ const SORT_OPTIONS = [
   { value: 'alpha', label: 'A-Z' },
   { value: 'alpha_desc', label: 'Z-A' },
   { value: 'unlock', label: 'By Unlock Source' },
+  { value: 'unlock_desc', label: 'By Unlock Source (Z-A)' },
 ];
 
 export default function CraftingPage() {
@@ -20,6 +21,7 @@ export default function CraftingPage() {
   const toggleItem = useCollectionStore((s) => s.toggleItem);
   const sortModes = useCollectionStore((s) => s.sortModes);
   const viewModes = useCollectionStore((s) => s.viewModes);
+  const setSort = useCollectionStore((s) => s.setSort);
   const sort = sortModes['crafting'] || 'category';
   const viewMode = viewModes['crafting'] || 'list';
 
@@ -41,8 +43,9 @@ export default function CraftingPage() {
       return [['All Recipes', sorted]];
     }
 
-    if (sort === 'unlock') {
+    if (sort === 'unlock' || sort === 'unlock_desc') {
       sorted.sort((a, b) => a.unlock.localeCompare(b.unlock));
+      if (sort === 'unlock_desc') sorted.reverse();
       return [['All Recipes', sorted]];
     }
 
@@ -54,6 +57,20 @@ export default function CraftingPage() {
     });
     return Object.entries(groups).filter(([, items]) => items.length > 0);
   }, [filtered, sort]);
+
+  const toggleSortMode = useCallback((ascMode, descMode = null) => {
+    const nextDescMode = descMode || `${ascMode}_desc`;
+    if (sort === ascMode) return setSort('crafting', nextDescMode);
+    if (sort === nextDescMode) return setSort('crafting', ascMode);
+    return setSort('crafting', ascMode);
+  }, [setSort, sort]);
+
+  const sortArrow = useCallback((ascMode, descMode = null) => {
+    const activeDescMode = descMode || `${ascMode}_desc`;
+    if (sort === ascMode) return ' \u2191';
+    if (sort === activeDescMode) return ' \u2193';
+    return ' \u21D5';
+  }, [sort]);
 
   return (
     <div className="container">
@@ -86,6 +103,8 @@ export default function CraftingPage() {
                 toggleItem={toggleItem}
                 sectionKey={`crafting:${group}`}
                 viewMode={viewMode}
+                onSortClick={toggleSortMode}
+                sortArrow={sortArrow}
               />
             </div>
           );
@@ -96,7 +115,7 @@ export default function CraftingPage() {
   );
 }
 
-function SectionItems({ items, craftingChecked, toggleItem, sectionKey, viewMode }) {
+function SectionItems({ items, craftingChecked, toggleItem, sectionKey, viewMode, onSortClick, sortArrow }) {
   const collapsed = useCollectionStore((s) => s.collapsedSections);
   if (collapsed[sectionKey]) return null;
 
@@ -106,9 +125,9 @@ function SectionItems({ items, craftingChecked, toggleItem, sectionKey, viewMode
         <thead>
           <tr>
             <th></th>
-            <th>Name</th>
+            <th className="fish-th-sort" onClick={() => onSortClick('alpha')}>Name{sortArrow('alpha')}</th>
             <th>Ingredients</th>
-            <th>Unlock</th>
+            <th className="fish-th-sort" onClick={() => onSortClick('unlock')}>Unlock{sortArrow('unlock')}</th>
           </tr>
         </thead>
         <tbody>

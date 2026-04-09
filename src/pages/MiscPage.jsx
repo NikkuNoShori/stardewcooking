@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useCollectionStore } from '../hooks/useCollectionStore';
 import { useCollectionSync } from '../hooks/useCollectionSync';
 import { STARDROPS } from '../data/stardrops';
@@ -50,6 +50,7 @@ export default function MiscPage() {
   const filters = useCollectionStore((s) => s.filters);
   const sortModes = useCollectionStore((s) => s.sortModes);
   const viewModes = useCollectionStore((s) => s.viewModes);
+  const setSort = useCollectionStore((s) => s.setSort);
 
   const checkedMaps = { stardropChecked, secretNoteChecked, journalScrapChecked, monsterChecked };
 
@@ -89,6 +90,20 @@ export default function MiscPage() {
     return Object.entries(groups).filter(([, items]) => items.length > 0);
   }, [filtered, sort]);
 
+  const toggleSortMode = useCallback((ascMode, descMode = null) => {
+    const nextDescMode = descMode || `${ascMode}_desc`;
+    if (sort === ascMode) return setSort('misc', nextDescMode);
+    if (sort === nextDescMode) return setSort('misc', ascMode);
+    return setSort('misc', ascMode);
+  }, [setSort, sort]);
+
+  const sortArrow = useCallback((ascMode, descMode = null) => {
+    const activeDescMode = descMode || `${ascMode}_desc`;
+    if (sort === ascMode) return ' \u2191';
+    if (sort === activeDescMode) return ' \u2193';
+    return ' \u21D5';
+  }, [sort]);
+
   return (
     <div className="container">
       <CollectionHeader title="Misc Trackers" done={totalDone} total={totalItems} colorClass="misc-progress" icon="⭐" />
@@ -120,6 +135,9 @@ export default function MiscPage() {
                 toggleItem={toggleItem}
                 sectionKey={`misc:${group}`}
                 viewMode={viewMode}
+                onSortClick={toggleSortMode}
+                sortArrow={sortArrow}
+                onCategorySort={() => setSort('misc', 'category')}
               />
             </div>
           );
@@ -130,7 +148,7 @@ export default function MiscPage() {
   );
 }
 
-function MiscSectionItems({ items, checkedMaps, toggleItem, sectionKey, viewMode }) {
+function MiscSectionItems({ items, checkedMaps, toggleItem, sectionKey, viewMode, onSortClick, sortArrow, onCategorySort }) {
   const collapsed = useCollectionStore((s) => s.collapsedSections);
   if (collapsed[sectionKey]) return null;
 
@@ -140,8 +158,8 @@ function MiscSectionItems({ items, checkedMaps, toggleItem, sectionKey, viewMode
         <thead>
           <tr>
             <th></th>
-            <th>Name</th>
-            <th>Category</th>
+            <th className="fish-th-sort" onClick={() => onSortClick('alpha')}>Name{sortArrow('alpha')}</th>
+            <th className="fish-th-sort" onClick={onCategorySort}>Category{sortArrow('category')}</th>
             <th>Details</th>
           </tr>
         </thead>

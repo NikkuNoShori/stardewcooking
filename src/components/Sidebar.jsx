@@ -21,14 +21,14 @@ function Junimo({ color = '#66bb6a', size = 20 }) {
 }
 
 const NAV_ITEMS = [
-  { key: '/cooking', label: 'Cooking' },
   { key: '/community-center', label: 'Bundles' },
-  { key: '/fish', label: 'Fish' },
-  { key: '/museum', label: 'Museum' },
-  { key: '/shipping', label: 'Shipping' },
+  { key: '/cooking', label: 'Cooking' },
   { key: '/crafting', label: 'Crafting' },
+  { key: '/fish', label: 'Fish' },
   { key: '/island', label: 'Ginger Island' },
   { key: '/misc', label: 'Misc' },
+  { key: '/museum', label: 'Museum' },
+  { key: '/shipping', label: 'Shipping' },
   { key: '/spawn-codes', label: 'Spawn Codes', cheat: true },
 ];
 

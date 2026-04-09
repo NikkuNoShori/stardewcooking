@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useCallback } from 'react';
 import { useCollectionStore } from '../hooks/useCollectionStore';
 import { useCollectionSync } from '../hooks/useCollectionSync';
 import { MUSEUM_ITEMS } from '../data/museum';
@@ -15,9 +15,13 @@ import {
 
 const SORT_OPTIONS = [
   { value: 'type', label: 'By Type' },
+  { value: 'type_desc', label: 'By Type (Desc)' },
   { value: 'alpha', label: 'A-Z' },
   { value: 'alpha_desc', label: 'Z-A' },
   { value: 'source', label: 'By Source' },
+  { value: 'source_desc', label: 'By Source (Z-A)' },
+  { value: 'price', label: 'By Sell (High-Low)' },
+  { value: 'price_asc', label: 'By Sell (Low-High)' },
 ];
 
 
@@ -27,6 +31,7 @@ export default function MuseumPage() {
   const toggleItem = useCollectionStore((s) => s.toggleItem);
   const sortModes = useCollectionStore((s) => s.sortModes);
   const viewModes = useCollectionStore((s) => s.viewModes);
+  const setSort = useCollectionStore((s) => s.setSort);
   const sort = sortModes['museum'] || 'type';
   const viewMode = viewModes['museum'] || 'list';
   const { selection, priceFilterMode } = useProfession();
@@ -55,18 +60,46 @@ export default function MuseumPage() {
       if (sort === 'alpha_desc') sorted.reverse();
       return [['All Items', sorted]];
     }
-    if (sort === 'source') {
+    if (sort === 'source' || sort === 'source_desc') {
       sorted.sort((a, b) => a.source.localeCompare(b.source));
+      if (sort === 'source_desc') sorted.reverse();
+      return [['All Items', sorted]];
+    }
+    if (sort === 'price' || sort === 'price_asc') {
+      sorted.sort((a, b) => {
+        const pa = getPriceDisplay(a.price ?? 0, a, selection);
+        const pb = getPriceDisplay(b.price ?? 0, b, selection);
+        return pa.adjustedPrice - pb.adjustedPrice;
+      });
+      if (sort === 'price') sorted.reverse();
       return [['All Items', sorted]];
     }
     // By type
     const artifacts = sorted.filter((m) => m.category === 'Artifact');
     const minerals = sorted.filter((m) => m.category === 'Mineral');
-    const groups = [];
-    if (artifacts.length > 0) groups.push(['Artifacts', artifacts]);
-    if (minerals.length > 0) groups.push(['Minerals', minerals]);
-    return groups;
-  }, [filtered, sort]);
+    const groups = sort === 'type_desc'
+      ? [['Minerals', minerals], ['Artifacts', artifacts]]
+      : [['Artifacts', artifacts], ['Minerals', minerals]];
+    const filteredGroups = [];
+    groups.forEach(([label, list]) => {
+      if (list.length > 0) filteredGroups.push([label, list]);
+    });
+    return filteredGroups;
+  }, [filtered, sort, selection]);
+
+  const toggleSortMode = useCallback((ascMode, descMode = null) => {
+    const nextDescMode = descMode || `${ascMode}_desc`;
+    if (sort === ascMode) return setSort('museum', nextDescMode);
+    if (sort === nextDescMode) return setSort('museum', ascMode);
+    return setSort('museum', ascMode);
+  }, [setSort, sort]);
+
+  const sortArrow = useCallback((ascMode, descMode = null) => {
+    const activeDescMode = descMode || `${ascMode}_desc`;
+    if (sort === ascMode) return ' \u2191';
+    if (sort === activeDescMode) return ' \u2193';
+    return ' \u21D5';
+  }, [sort]);
 
   return (
     <div className="container">
@@ -100,6 +133,8 @@ export default function MuseumPage() {
                 sectionKey={`museum:${group}`}
                 professionSelection={selection}
                 viewMode={viewMode}
+                onSortClick={toggleSortMode}
+                sortArrow={sortArrow}
               />
             </div>
           );
@@ -110,7 +145,7 @@ export default function MuseumPage() {
   );
 }
 
-function SectionItems({ items, museumChecked, toggleItem, sectionKey, professionSelection, viewMode }) {
+function SectionItems({ items, museumChecked, toggleItem, sectionKey, professionSelection, viewMode, onSortClick, sortArrow }) {
   const collapsed = useCollectionStore((s) => s.collapsedSections);
   if (collapsed[sectionKey]) return null;
 
@@ -120,10 +155,10 @@ function SectionItems({ items, museumChecked, toggleItem, sectionKey, profession
         <thead>
           <tr>
             <th></th>
-            <th>Name</th>
-            <th>Source</th>
-            <th>Category</th>
-            <th>Sell</th>
+            <th className="fish-th-sort" onClick={() => onSortClick('alpha')}>Name{sortArrow('alpha')}</th>
+            <th className="fish-th-sort" onClick={() => onSortClick('source')}>Source{sortArrow('source')}</th>
+            <th className="fish-th-sort" onClick={() => onSortClick('type', 'type_desc')}>Category{sortArrow('type', 'type_desc')}</th>
+            <th className="fish-th-sort" onClick={() => onSortClick('price', 'price_asc')}>Sell{sortArrow('price_asc', 'price')}</th>
           </tr>
         </thead>
         <tbody>

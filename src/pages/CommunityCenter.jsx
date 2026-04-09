@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useBundleStore } from '../hooks/useBundleStore';
 import { useCollectionStore } from '../hooks/useCollectionStore';
 import { useBundleSync } from '../hooks/useBundleSync';
@@ -136,6 +136,7 @@ function BundleCard({ room, bundle, viewMode }) {
   const categoryFilter = useBundleStore((s) => s.categoryFilter);
   const bundleSearch = useBundleStore((s) => s.bundleSearch);
   const isMobile = useIsMobile();
+  const [sortState, setSortState] = useState({ column: 'name', direction: 'asc' });
 
   const collapseKey = `${room.key}:${bundle.name}`;
   const isCollapsed = collapsedBundles[collapseKey] ?? false;
@@ -212,15 +213,15 @@ function BundleCard({ room, bundle, viewMode }) {
               <thead>
                 <tr>
                   <th></th>
-                  <th>Name</th>
-                  <th>Source</th>
-                  <th>Season</th>
-                  <th>Qty</th>
-                  <th>Quality</th>
+                  <th className="fish-th-sort" onClick={() => toggleTableSort(setSortState, 'name')}>Name{sortArrow(sortState, 'name')}</th>
+                  <th className="fish-th-sort" onClick={() => toggleTableSort(setSortState, 'source')}>Source{sortArrow(sortState, 'source')}</th>
+                  <th className="fish-th-sort" onClick={() => toggleTableSort(setSortState, 'season')}>Season{sortArrow(sortState, 'season')}</th>
+                  <th className="fish-th-sort" onClick={() => toggleTableSort(setSortState, 'qty')}>Qty{sortArrow(sortState, 'qty')}</th>
+                  <th className="fish-th-sort" onClick={() => toggleTableSort(setSortState, 'quality')}>Quality{sortArrow(sortState, 'quality')}</th>
                 </tr>
               </thead>
               <tbody>
-                {filteredItems.map((item, idx) => {
+                {sortBundleItems(filteredItems, sortState).map((item, idx) => {
                   const itemKey = `${room.key}:${bundle.name}:${item[0]}`;
                   const checked = !!bundleChecked[itemKey];
                   return (
@@ -320,11 +321,177 @@ function OverallProgress() {
   );
 }
 
+function NeededItemsTable({ rooms }) {
+  const bundleChecked = useCollectionStore((s) => s.bundleChecked);
+  const [sortState, setSortState] = useState({ column: 'name', direction: 'asc' });
+
+  const rows = useMemo(() => {
+    const byName = new Map();
+
+    rooms.forEach((room) => {
+      room.bundles.forEach((bundle) => {
+        const isPickBundle = !!bundle.pick;
+        bundle.items.forEach((item) => {
+          const [name, qty, quality, seasons, source, category] = item;
+          const key = `${room.key}:${bundle.name}:${name}`;
+          const checked = !!bundleChecked[key];
+          if (!byName.has(name)) {
+            byName.set(name, {
+              name,
+              requiredQty: 0,
+              optionalQty: 0,
+              checkedCount: 0,
+              totalCount: 0,
+              qualities: new Set(),
+              sources: new Set(),
+              seasons: new Set(),
+              categories: new Set(),
+              bundles: new Set(),
+            });
+          }
+          const row = byName.get(name);
+          if (isPickBundle) row.optionalQty += qty;
+          else row.requiredQty += qty;
+          row.totalCount += 1;
+          if (checked) row.checkedCount += 1;
+          if (quality > 0) row.qualities.add(QUALITY_LABELS[quality]);
+          row.sources.add(source);
+          seasons.forEach((s) => row.seasons.add(s));
+          row.categories.add(category);
+          row.bundles.add(bundle.name);
+        });
+      });
+    });
+
+    const baseRows = Array.from(byName.values())
+      .map((row) => ({
+        ...row,
+        sourceLabel: Array.from(row.sources).slice(0, 2).join(' / '),
+        seasonLabel: Array.from(row.seasons).join(', '),
+        categoryLabel: Array.from(row.categories).join(', '),
+        qualityLabel: row.qualities.size > 0 ? Array.from(row.qualities).join(', ') : 'Any',
+        bundleCount: row.bundles.size,
+      }));
+    return sortNeededRows(baseRows, sortState);
+  }, [rooms, bundleChecked, sortState]);
+
+  if (rows.length === 0) {
+    return <div className="empty">No required items in this scope</div>;
+  }
+
+  return (
+    <div className="cc-needed-wrap">
+      <table className="fish-grid-tbl cc-grid-tbl cc-needed-tbl">
+        <thead>
+          <tr>
+          <th className="fish-th-sort" onClick={() => toggleTableSort(setSortState, 'name')}>Item{sortArrow(sortState, 'name')}</th>
+          <th className="fish-th-sort" onClick={() => toggleTableSort(setSortState, 'qty')}>
+            <span className="cc-th-with-tip">
+              Qty Needed{sortArrow(sortState, 'qty')}
+              <span className="cc-help-tip-wrap">
+                <button
+                  type="button"
+                  className="cc-help-tip-btn"
+                  aria-label="Explain Qty Needed"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                  }}
+                >
+                  ?
+                </button>
+                <span className="cc-help-tip-pop">
+                  Number shown is required quantity.
+                  <br />
+                  <strong>+ optional</strong> means this item can also be used in a pick-one bundle.
+                </span>
+              </span>
+            </span>
+          </th>
+          <th className="fish-th-sort" onClick={() => toggleTableSort(setSortState, 'quality')}>Quality{sortArrow(sortState, 'quality')}</th>
+          <th className="fish-th-sort" onClick={() => toggleTableSort(setSortState, 'source')}>Source{sortArrow(sortState, 'source')}</th>
+          <th className="fish-th-sort" onClick={() => toggleTableSort(setSortState, 'season')}>Season{sortArrow(sortState, 'season')}</th>
+          <th className="fish-th-sort" onClick={() => toggleTableSort(setSortState, 'category')}>Category{sortArrow(sortState, 'category')}</th>
+          <th className="fish-th-sort" onClick={() => toggleTableSort(setSortState, 'bundles')}>Used In{sortArrow(sortState, 'bundles')}</th>
+          <th className="fish-th-sort" onClick={() => toggleTableSort(setSortState, 'progress')}>Progress{sortArrow(sortState, 'progress')}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row) => (
+            <tr key={row.name} className={row.checkedCount === row.totalCount ? 'chk' : ''}>
+              <td className="fish-grid-name">{row.name}</td>
+              <td>
+                {row.requiredQty > 0 ? row.requiredQty : '—'}
+                {row.optionalQty > 0 ? <span className="cc-needed-optional"> (+{row.optionalQty} optional)</span> : null}
+              </td>
+              <td>{row.qualityLabel}</td>
+              <td>{row.sourceLabel}</td>
+              <td>{row.seasonLabel}</td>
+              <td>{row.categoryLabel}</td>
+              <td>{row.bundleCount} bundles</td>
+              <td>{row.checkedCount}/{row.totalCount}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
+function toggleTableSort(setSortState, column) {
+  setSortState((prev) => {
+    if (prev.column === column) {
+      return { column, direction: prev.direction === 'asc' ? 'desc' : 'asc' };
+    }
+    return { column, direction: 'asc' };
+  });
+}
+
+function sortArrow(sortState, column) {
+  if (sortState.column !== column) return ' \u21D5';
+  return sortState.direction === 'asc' ? ' \u2191' : ' \u2193';
+}
+
+function sortBundleItems(items, sortState) {
+  const rows = [...items];
+  rows.sort((a, b) => {
+    switch (sortState.column) {
+      case 'source': return a[4].localeCompare(b[4]);
+      case 'season': return (a[3]?.[0] || '').localeCompare(b[3]?.[0] || '');
+      case 'qty': return a[1] - b[1];
+      case 'quality': return a[2] - b[2];
+      default: return a[0].localeCompare(b[0]);
+    }
+  });
+  if (sortState.direction === 'desc') rows.reverse();
+  return rows;
+}
+
+function sortNeededRows(rows, sortState) {
+  const copy = [...rows];
+  copy.sort((a, b) => {
+    switch (sortState.column) {
+      case 'qty': return (a.requiredQty + a.optionalQty) - (b.requiredQty + b.optionalQty);
+      case 'quality': return a.qualityLabel.localeCompare(b.qualityLabel);
+      case 'source': return a.sourceLabel.localeCompare(b.sourceLabel);
+      case 'season': return a.seasonLabel.localeCompare(b.seasonLabel);
+      case 'category': return a.categoryLabel.localeCompare(b.categoryLabel);
+      case 'bundles': return a.bundleCount - b.bundleCount;
+      case 'progress': return (a.checkedCount / Math.max(1, a.totalCount)) - (b.checkedCount / Math.max(1, b.totalCount));
+      default: return a.name.localeCompare(b.name);
+    }
+  });
+  if (sortState.direction === 'desc') copy.reverse();
+  return copy;
+}
+
 export default function CommunityCenter() {
   useBundleSync();
   const activeRoom = useBundleStore((s) => s.activeRoom);
   const viewMode = useBundleStore((s) => s.viewMode);
+  const contentMode = useBundleStore((s) => s.contentMode);
   const setViewMode = useBundleStore((s) => s.setViewMode);
+  const setContentMode = useBundleStore((s) => s.setContentMode);
   const setAllBundlesCollapsed = useBundleStore((s) => s.setAllBundlesCollapsed);
   const setBundleItemsChecked = useBundleStore((s) => s.setBundleItemsChecked);
   const getRoomProgress = useBundleStore((s) => s.getRoomProgress);
@@ -345,51 +512,69 @@ export default function CommunityCenter() {
     <div className="container">
       <OverallProgress />
       <RoomTabs />
+      <div className="filter-bar collection-controls-top">
+        <button
+          className={`filter-btn${contentMode === 'bundles' ? ' active' : ''}`}
+          onClick={() => setContentMode('bundles')}
+        >
+          Bundles
+        </button>
+        <button
+          className={`filter-btn${contentMode === 'needed' ? ' active' : ''}`}
+          onClick={() => setContentMode('needed')}
+        >
+          Needed Items
+        </button>
+      </div>
       <Filters
         viewMode={viewMode}
         setViewMode={setViewMode}
         handleSetAllCollapsed={handleSetAllCollapsed}
       />
       <div className="panel cc-panel">
-        {roomsToRender.map((r) => (
-          <div key={r.key} className="cc-room-section">
-            {showingAllRooms && (() => {
-              const progress = getRoomProgress(r);
-              const roomComplete = progress.completed === progress.total;
-              return (
-                <div className="cc-room-section-hdr" style={{ '--room-color': r.color }}>
-                  <span className="cc-room-section-name-wrap">
-                    <button
-                      className={`cc-inline-check cc-room-inline-check${roomComplete ? ' active' : ''}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        const shouldCheck = !roomComplete;
-                        r.bundles.forEach((bundle) => {
-                          setBundleItemsChecked(r.key, bundle.name, bundle.items, shouldCheck);
-                        });
-                      }}
-                      title={roomComplete ? 'Uncheck room' : 'Check room'}
-                      aria-label={roomComplete ? 'Uncheck room' : 'Check room'}
-                    >
-                      <span className={`fish-grid-check${roomComplete ? ' checked' : ''}`}>
-                        <svg className="ck" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M5 13l4 4L19 7" />
-                        </svg>
-                      </span>
-                    </button>
-                    <span className="cc-room-section-name">{r.name}</span>
-                  </span>
-                  <span className="cc-room-section-meta">
-                    <span className="cc-room-section-reward">{ROOM_COMPLETION_REWARDS[r.key] || 'Special unlock'}</span>
-                  </span>
-                </div>
-              );
-            })()}
-            {r.bundles.map((bundle) => (
-              <BundleCard key={`${r.key}:${bundle.name}`} room={r} bundle={bundle} viewMode={viewMode} />
-            ))}
-          </div>
-        ))}
+        {contentMode === 'needed' ? (
+          <NeededItemsTable rooms={roomsToRender} />
+        ) : (
+          roomsToRender.map((r) => (
+            <div key={r.key} className="cc-room-section">
+              {showingAllRooms && (() => {
+                const progress = getRoomProgress(r);
+                const roomComplete = progress.completed === progress.total;
+                return (
+                  <div className="cc-room-section-hdr" style={{ '--room-color': r.color }}>
+                    <span className="cc-room-section-name-wrap">
+                      <button
+                        className={`cc-inline-check cc-room-inline-check${roomComplete ? ' active' : ''}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          const shouldCheck = !roomComplete;
+                          r.bundles.forEach((bundle) => {
+                            setBundleItemsChecked(r.key, bundle.name, bundle.items, shouldCheck);
+                          });
+                        }}
+                        title={roomComplete ? 'Uncheck room' : 'Check room'}
+                        aria-label={roomComplete ? 'Uncheck room' : 'Check room'}
+                      >
+                        <span className={`fish-grid-check${roomComplete ? ' checked' : ''}`}>
+                          <svg className="ck" viewBox="0 0 24 24" fill="none" stroke="#fff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M5 13l4 4L19 7" />
+                          </svg>
+                        </span>
+                      </button>
+                      <span className="cc-room-section-name">{r.name}</span>
+                    </span>
+                    <span className="cc-room-section-meta">
+                      <span className="cc-room-section-reward">{ROOM_COMPLETION_REWARDS[r.key] || 'Special unlock'}</span>
+                    </span>
+                  </div>
+                );
+              })()}
+              {r.bundles.map((bundle) => (
+                <BundleCard key={`${r.key}:${bundle.name}`} room={r} bundle={bundle} viewMode={viewMode} />
+              ))}
+            </div>
+          ))
+        )}
       </div>
     </div>
   );

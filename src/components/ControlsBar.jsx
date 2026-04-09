@@ -27,12 +27,19 @@ export default function ControlsBar({ inline = false }) {
       <div className="sort-wrap">
         <select value={sortMode} onChange={(e) => setSort(e.target.value)}>
           <option value="alpha">A-Z</option>
+          <option value="alpha_desc">Z-A</option>
           <option value="harvest">Ingredient Season</option>
+          <option value="harvest_desc">Ingredient Season (Desc)</option>
           <option value="type">Item Type</option>
+          <option value="type_desc">Item Type (Desc)</option>
           <option value="source">Recipe Source</option>
+          <option value="source_desc">Recipe Source (Desc)</option>
           <option value="energy">Energy</option>
+          <option value="energy_asc">Energy (Low-High)</option>
           <option value="health">HP</option>
+          <option value="health_asc">HP (Low-High)</option>
           <option value="sell">Sell Price</option>
+          <option value="sell_asc">Sell Price (Low-High)</option>
         </select>
       </div>
       {currentTab === 'recipes' && (

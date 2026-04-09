@@ -21,10 +21,10 @@ function Junimo({ color = '#66bb6a', size = 20 }) {
 }
 
 const NAV_ITEMS = [
-  { key: '/community-center', label: 'Bundles' },
+  { key: '/community-center', label: 'Community Center' },
   { key: '/cooking', label: 'Cooking' },
   { key: '/crafting', label: 'Crafting' },
-  { key: '/fish', label: 'Fish' },
+  { key: '/fish', label: 'Fishing' },
   { key: '/island', label: 'Ginger Island' },
   { key: '/misc', label: 'Misc' },
   { key: '/museum', label: 'Museum' },
@@ -50,7 +50,7 @@ export default function Sidebar({ isOpen, onClose }) {
 
       <nav className={`sidebar${isOpen ? ' open' : ''}`}>
         {/* Logo */}
-        <div className="sidebar-logo" onClick={() => handleNav('/cooking')}>
+        <div className="sidebar-logo" onClick={() => handleNav('/')}>
           <Junimo color="#66bb6a" size={28} />
           <div className="sidebar-logo-text">
             <span className="sidebar-title">Stardew</span>

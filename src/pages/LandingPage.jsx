@@ -86,9 +86,6 @@ export default function LandingPage() {
         <p className="landing-subtitle">
           Your all-in-one progress tracker for 100% completion in Stardew Valley.
         </p>
-        <button className="landing-cta" onClick={() => navigate('/cooking')}>
-          Start Tracking
-        </button>
       </section>
 
       {/* Features grid */}
@@ -123,17 +120,6 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Bottom CTA */}
-      <section className="landing-bottom">
-        <div className="landing-hero-junimos">
-          <Junimo color="#81c784" size={28} />
-          <Junimo color="#e57373" size={28} />
-          <Junimo color="#64b5f6" size={28} />
-        </div>
-        <button className="landing-cta" onClick={() => navigate('/cooking')}>
-          Get Started
-        </button>
-      </section>
     </div>
   );
 }
